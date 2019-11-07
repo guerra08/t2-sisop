@@ -1,2 +1,4 @@
 *.vscode
 *.class
+*.out
+*.dat
