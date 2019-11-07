@@ -1,9 +1,10 @@
+import java.io.File;
 import java.util.Scanner;
 
 class MyFS{
 
     //Variáveis a serem utilizadas posteriormentes em operações de IO
-    public static String man = "ls - listar diretório\nmkdir - criar diretório";
+    public static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell";
     static int block_size = 1024;
 	static int blocks = 2048;
 	static int fat_size = blocks * 2;
@@ -17,15 +18,23 @@ class MyFS{
 	/* data block */
 	final static byte[] data_block = new byte[block_size];
 
+    //TODO: Carregar a FAT / dados do disco.
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         FileSystem fs = new FileSystem();
 
         System.out.println("Bem vindo ao sistema de arquivos mais megaboga de todos!");
-        System.out.println("Inicializando a FAT, aguarde...");
-        
-        initFat();
-        initEmptyRootBlock();
+
+        String fCheck = checkIfExists();
+
+        if(!fCheck.isEmpty()){
+            System.out.println("Carregando FAT");
+        }
+        else{
+            System.out.println("Inicializando FAT");
+            initFat();
+            initEmptyRootBlock();
+        }
 
         System.out.println("Digite um dos comandos para realizar uma ação (man - comandos disponíveis): ");
         
@@ -84,6 +93,16 @@ class MyFS{
         /* write the remaining data blocks to disk */
 		for (int i = root_block + 1; i < blocks; i++)
             FileSystem.writeBlock("filesystem.dat", i, data_block);
+    }
+
+    /**
+     * Verifica se já existe um FS inicializado no diretório no qual o programa está rodando.
+     * @return boolea true se existe, falso caso não exista
+     */
+    public static String checkIfExists(){
+        final String dir = System.getProperty("user.dir");  
+        File f = new File(dir+"/filesystem.dat");
+        return f.exists() ? f.getAbsolutePath() : "";
     }
 
 }
