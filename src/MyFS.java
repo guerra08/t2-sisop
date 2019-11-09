@@ -1,10 +1,12 @@
 import java.io.File;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 
 class MyFS{
 
     //Variáveis a serem utilizadas posteriormentes em operações de IO
-    public static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell";
+    static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell";
     static int block_size = 1024;
 	static int blocks = 2048;
 	static int fat_size = blocks * 2;
@@ -12,7 +14,8 @@ class MyFS{
 	static int root_block = fat_blocks;
 	static int dir_entry_size = 32;
     static int dir_entries = block_size / dir_entry_size;
-    
+    static Set<String> operations = new HashSet<>();
+
     /* FAT data structure */
 	final static short[] fat = new short[blocks];
 	/* data block */
@@ -39,19 +42,34 @@ class MyFS{
         System.out.println("Digite um dos comandos para realizar uma ação (man - comandos disponíveis): ");
         
         while(true){
-
             String op = sc.nextLine();
-            doOperation(op);
+            parseAndExecute(op);
         }
     }
 
+    static void parseAndExecute(String s){
+        if(s.isEmpty()) {System.out.println("Invalid operation!"); return;}
+
+        String [] split = s.split("\\s+");
+        String op = split[0];
+
+        if(!opExists(op)) {System.out.println("Invalid operation!"); return;}
+
+        doOperation(split);
+    }
+
+    private static boolean opExists(String op){
+        operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");
+        return operations.contains(op);
+    }
+
     /**
-     * @param op String digitada pelo usuário que representa a operação a ser realizada.
+     * @param args Array de string digitada pelo usuário que representa a operação a ser realizada.
      * Executa a operação e/ou imprime no shell alguma resposta.
      */
-    public static void doOperation(String op){
+    private static void doOperation(String[] args){
 
-        switch(op){
+        switch(args[0]){
             case "ls":
                 System.out.println("list dir");
                 break;
@@ -74,7 +92,7 @@ class MyFS{
 
     }
 
-    public static void initFat(){
+    private static void initFat(){
         /* initialize the FAT */
 		for (int i = 0; i < fat_blocks; i++)
         fat[i] = 0x7ffe;
@@ -85,7 +103,7 @@ class MyFS{
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
-    public static void initEmptyRootBlock(){
+    private static void initEmptyRootBlock(){
         for (int i = 0; i < block_size; i++)
             data_block[i] = 0;
         FileSystem.writeBlock("filesystem.dat", root_block, data_block);
@@ -99,7 +117,7 @@ class MyFS{
      * Verifica se já existe um FS inicializado no diretório no qual o programa está rodando.
      * @return boolea true se existe, falso caso não exista
      */
-    public static String checkIfExists(){
+    private static String checkIfExists(){
         final String dir = System.getProperty("user.dir");  
         File f = new File(dir+"/filesystem.dat");
         return f.exists() ? f.getAbsolutePath() : "";
