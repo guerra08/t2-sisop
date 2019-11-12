@@ -6,7 +6,7 @@ import java.util.Set;
 class MyFS{
 
     //Variáveis a serem utilizadas posteriormentes em operações de IO
-    static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell";
+    static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell\ninit - inicializa o filesytem\nload - carrega o filesystem";
     static int block_size = 1024;
 	static int blocks = 2048;
 	static int fat_size = blocks * 2;
@@ -28,17 +28,6 @@ class MyFS{
 
         System.out.println("Bem vindo ao sistema de arquivos mais megaboga de todos!");
 
-        String fCheck = checkIfExists();
-
-        if(!fCheck.isEmpty()){
-            System.out.println("Carregando FAT");
-        }
-        else{
-            System.out.println("Inicializando FAT");
-            initFat();
-            initEmptyRootBlock();
-        }
-
         System.out.println("Digite um dos comandos para realizar uma ação (man - comandos disponíveis): ");
         
         while(true){
@@ -59,7 +48,7 @@ class MyFS{
     }
 
     private static boolean opExists(String op){
-        operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");
+        operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");operations.add("init");operations.add("load");
         return operations.contains(op);
     }
 
@@ -70,6 +59,12 @@ class MyFS{
     private static void doOperation(String[] args){
 
         switch(args[0]){
+            case "init":
+                init(args);
+                break;
+            case "load":
+                load(args);
+                break;
             case "ls":
                 System.out.println("list dir");
                 break;
@@ -91,6 +86,39 @@ class MyFS{
         }
 
     }
+
+    private static void init(String[] args){
+        System.out.println(args.length);
+        if(args.length > 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        System.out.println("Inicializando filesystem...");
+        initFat();
+        initEmptyRootBlock();
+        System.out.println("Inicializacao concluida.");
+    }
+
+    private static void load(String[] args){
+        System.out.println(args.length);
+        if(args.length > 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        System.out.println("Carregando filesystem...");
+        _load();
+        return;
+    }
+
+    private static void _load(){
+        String file = checkIfExists();
+        if(file.isEmpty()){System.out.println("Não foi possível carregar a fat"); return;}
+        short fromDisk[] = FileSystem.readFat(file);
+        for (int i = 0; i < blocks; i++) {
+            fat[i] = fromDisk[i];
+        }
+        System.out.println("Filesystem carregado!");
+    }   
 
     private static void initFat(){
         /* initialize the FAT */
