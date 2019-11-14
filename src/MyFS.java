@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
@@ -221,20 +222,31 @@ class MyFS{
     }
 
     private static void ls(String s){
+        int block = parsePathString(s);
         
     }
 
     private static int parsePathString(String s){
         String[] path = s.split("\\/+");
+        System.out.println(Arrays.toString(path));
         int block = root_block;
         int length = path.length;
-        DirEntry de = FileSystem.readDirEntry(root_block, 0);
-        for (int i = 0; i < length; i++) {
-           //Terminar 
-           //Percorrer as 32 entradas do diretório até achar uma com o nome igual
-           //Se não encontra, já retorna erro (não encontrou)
+        int count = 0;
+        System.out.println(length);
+        DirEntry de = FileSystem.readDirEntry(block, 0);
+        for (int i = 1; i < path.length; i++) {
+            count = 0;
+            while(!(new String(de.filename).trim().equals(path[i])) || count < 25){
+                System.out.println(new String(de.filename).trim());
+                count++;
+                de = FileSystem.readDirEntry(block, count);
+            }
+            if(count == 25) {System.out.println("not found");return -1;}
+            block = de.first_block;
+            System.out.println(block); 
+            de = FileSystem.readDirEntry(block, count);
         }
-        return 0;
+        return block;
     }
 
 }
