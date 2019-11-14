@@ -21,7 +21,6 @@ class MyFS{
 	/* data block */
 	final static byte[] data_block = new byte[block_size];
 
-    //TODO: Carregar a FAT / dados do disco.
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         FileSystem fs = new FileSystem();
@@ -49,6 +48,7 @@ class MyFS{
 
     private static boolean opExists(String op){
         operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");operations.add("init");operations.add("load");operations.add("delfs");
+        operations.add("add3");operations.add("findInRoot");
         return operations.contains(op);
     }
 
@@ -66,7 +66,7 @@ class MyFS{
                 load(args);
                 break;
             case "ls":
-                System.out.println("list dir");
+                ls(args[1]);
                 break;
             case "mkdir":
                 System.out.println("make dir");
@@ -80,6 +80,12 @@ class MyFS{
                 break;
             case "delfs":
                 delfs(args);
+                break;
+            case "add3":
+                add3ToRoot();
+                break;
+            case "findInRoot":
+                findInRoot(args[1]);
                 break;
             case "exit":
                 System.exit(0);
@@ -167,6 +173,68 @@ class MyFS{
         final String dir = System.getProperty("user.dir");  
         File f = new File(dir+"/filesystem.dat");
         return f.exists() ? f.getAbsolutePath() : "";
+    }
+
+    private static void add3ToRoot() {
+        DirEntry dir_entry = new DirEntry();
+		String name = "file1";
+		byte[] namebytes = name.getBytes();
+		for (int i = 0; i < namebytes.length; i++)
+			dir_entry.filename[i] = namebytes[i];
+		dir_entry.attributes = 0x01;
+		dir_entry.first_block = 1111;
+		dir_entry.size = 222;
+		FileSystem.writeDirEntry(root_block, 0, dir_entry);
+
+		name = "file2";
+		namebytes = name.getBytes();
+		for (int i = 0; i < namebytes.length; i++)
+			dir_entry.filename[i] = namebytes[i];
+		dir_entry.attributes = 0x01;
+		dir_entry.first_block = 2222;
+		dir_entry.size = 333;
+		FileSystem.writeDirEntry(root_block, 1, dir_entry);
+
+		name = "file3";
+		namebytes = name.getBytes();
+		for (int i = 0; i < namebytes.length; i++)
+			dir_entry.filename[i] = namebytes[i];
+		dir_entry.attributes = 0x01;
+		dir_entry.first_block = 3333;
+		dir_entry.size = 444;
+		FileSystem.writeDirEntry(root_block, 2, dir_entry);
+    }
+
+    private static void findInRoot(String s){
+        DirEntry dir_entry;
+        boolean found = false;
+        for (int i = 0; i < dir_entries; i++) {
+            dir_entry = FileSystem.readDirEntry(root_block, i);
+            String cur = new String(dir_entry.filename).trim();
+			if(s.equals(cur)){
+                found = true;
+                System.out.println("Encontrou! " + cur);
+                break;
+            }
+        }
+        if(!found) System.err.println("Nao encontrou!");
+    }
+
+    private static void ls(String s){
+        
+    }
+
+    private static int parsePathString(String s){
+        String[] path = s.split("\\/+");
+        int block = root_block;
+        int length = path.length;
+        DirEntry de = FileSystem.readDirEntry(root_block, 0);
+        for (int i = 0; i < length; i++) {
+           //Terminar 
+           //Percorrer as 32 entradas do diretório até achar uma com o nome igual
+           //Se não encontra, já retorna erro (não encontrou)
+        }
+        return 0;
     }
 
 }
