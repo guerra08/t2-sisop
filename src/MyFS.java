@@ -6,7 +6,7 @@ import java.util.Set;
 class MyFS{
 
     //Variáveis a serem utilizadas posteriormentes em operações de IO
-    static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell\ninit - inicializa o filesytem\nload - carrega o filesystem";
+    static String man = "ls - listar diretório\nmkdir - criar diretório\nclear - limpa o shell\nexit - sair do shell\ninit - inicializa o filesytem\nload - carrega o filesystem\ndelfs - deleta o filesystem";
     static int block_size = 1024;
 	static int blocks = 2048;
 	static int fat_size = blocks * 2;
@@ -48,7 +48,7 @@ class MyFS{
     }
 
     private static boolean opExists(String op){
-        operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");operations.add("init");operations.add("load");
+        operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");operations.add("init");operations.add("load");operations.add("delfs");
         return operations.contains(op);
     }
 
@@ -78,6 +78,9 @@ class MyFS{
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();  
                 break;
+            case "delfs":
+                delfs(args);
+                break;
             case "exit":
                 System.exit(0);
             default:
@@ -97,6 +100,21 @@ class MyFS{
         initFat();
         initEmptyRootBlock();
         System.out.println("Inicializacao concluida.");
+    }
+
+    private static void delfs(String[] args){
+        if(args.length > 1){
+            System.out.println("Invalid arguments!");
+            return;
+        }
+        System.out.println("Removendo filesystem...");
+        if(!deleteFs()) System.out.println("Erro ao remover filesystem."); else System.out.println("Remoção concluida.");
+    }
+
+    private static boolean deleteFs(){
+        String fPath = checkIfExists();
+        File f = new File(fPath);
+        return f.delete();
     }
 
     private static void load(String[] args){
