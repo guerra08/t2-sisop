@@ -18,11 +18,6 @@ public class FileSystem {
 	static int dir_entry_size = 32;
 	static int dir_entries = block_size / dir_entry_size;
 
-	/* FAT data structure */
-	final static short[] fat = new short[blocks];
-	/* data block */
-	final static byte[] data_block = new byte[block_size];
-
 	/* reads a data block from disk */
 	public static byte[] readBlock(String file, int block) {
 		byte[] record = new byte[block_size];
@@ -102,7 +97,7 @@ public class FileSystem {
 	}
 
 	/* writes a directory entry in a directory */
-	public static void writeDirEntry(int block, int entry, DirEntry dir_entry) {
+	public static void writeDirEntry(int block, int entry, DirEntry dir_entry, byte[] data_block) {
 		byte[] bytes = readBlock("filesystem.dat", block);
 		ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
 		DataInputStream in = new DataInputStream(bis);
@@ -131,64 +126,7 @@ public class FileSystem {
 		byte[] bytes2 = bos.toByteArray();
 		for (int i = 0; i < bytes2.length; i++)
 			data_block[i] = bytes2[i];
+
 		writeBlock("filesystem.dat", block, data_block);
-	}
-
-	public static void main(String args[]) {
-		/* initialize the FAT */
-		for (int i = 0; i < fat_blocks; i++)
-			fat[i] = 0x7ffe;
-		fat[root_block] = 0x7fff;
-		for (int i = root_block + 1; i < blocks; i++)
-			fat[i] = 0;
-		/* write it to disk */
-		writeFat("filesystem.dat", fat);
-
-		/* initialize an empty data block */
-		for (int i = 0; i < block_size; i++)
-			data_block[i] = 0;
-
-		/* write an empty ROOT directory block */
-		writeBlock("filesystem.dat", root_block, data_block);
-
-		/* write the remaining data blocks to disk */
-		for (int i = root_block + 1; i < blocks; i++)
-			writeBlock("filesystem.dat", i, data_block);
-
-		/* fill three root directory entries and list them */
-		DirEntry dir_entry = new DirEntry();
-		String name = "file1";
-		byte[] namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 1111;
-		dir_entry.size = 222;
-		writeDirEntry(root_block, 0, dir_entry);
-
-		name = "file2";
-		namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 2222;
-		dir_entry.size = 333;
-		writeDirEntry(root_block, 1, dir_entry);
-
-		name = "file3";
-		namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 3333;
-		dir_entry.size = 444;
-		writeDirEntry(root_block, 2, dir_entry);
-
-		/* list entries from the root directory */
-		for (int i = 0; i < dir_entries; i++) {
-			dir_entry = readDirEntry(root_block, i);
-			System.out.println("Entry " + i + ", file: " + new String(dir_entry.filename) + " attr: " +
-			dir_entry.attributes + " first: " + dir_entry.first_block + " size: " + dir_entry.size);
-		}
 	}
 }

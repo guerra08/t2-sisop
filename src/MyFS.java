@@ -219,6 +219,10 @@ class MyFS{
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
 
+        for(int i = 0; i < block_size; i++){
+            data_block[i] = 0;
+        }
+
         String[] file = path.split("\\/+");
 
         System.out.println("Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " +  blockEmpty);
@@ -230,10 +234,9 @@ class MyFS{
 		dir_entry.attributes = 0x02;
 		dir_entry.first_block = (short)blockEmpty;
 		dir_entry.size = 222; // ???? nao sei oq é
-        FileSystem.writeDirEntry(blockPrev, entry, dir_entry);
+        FileSystem.writeDirEntry(blockPrev, entry, dir_entry, data_block);
 
-
-        fat[blockEmpty] = 0x22; // só pra ver se muda
+        fat[blockEmpty] = 0x7fff; // só pra ver se muda
         FileSystem.writeFat("filesystem.dat", fat);
 
     }
