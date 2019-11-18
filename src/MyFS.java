@@ -16,6 +16,7 @@ class MyFS{
 	static int dir_entry_size = 32;
     static int dir_entries = block_size / dir_entry_size;
     static Set<String> operations = new HashSet<>();
+    static String file = "filesystem.dat";
 
     /* FAT data structure */
 	final static short[] fat = new short[blocks];
@@ -49,7 +50,6 @@ class MyFS{
 
     private static boolean opExists(String op){
         operations.add("man");operations.add("ls");operations.add("mkdir");operations.add("clear");operations.add("exit");operations.add("init");operations.add("load");operations.add("delfs");
-        operations.add("add3");operations.add("findInRoot");
         return operations.contains(op);
     }
 
@@ -70,7 +70,7 @@ class MyFS{
                 ls(args[1]);
                 break;
             case "mkdir":
-                System.out.println("make dir");
+                mkdir(args[1]);
                 break;
             case "man":
                 System.out.println(man);
@@ -81,12 +81,6 @@ class MyFS{
                 break;
             case "delfs":
                 delfs(args);
-                break;
-            case "add3":
-                add3ToRoot();
-                break;
-            case "findInRoot":
-                findInRoot(args[1]);
                 break;
             case "exit":
                 System.exit(0);
@@ -125,7 +119,6 @@ class MyFS{
     }
 
     private static void load(String[] args){
-        System.out.println(args.length);
         if(args.length > 1){
             System.out.println("Invalid arguments!");
             return;
@@ -176,77 +169,97 @@ class MyFS{
         return f.exists() ? f.getAbsolutePath() : "";
     }
 
-    private static void add3ToRoot() {
-        DirEntry dir_entry = new DirEntry();
-		String name = "file1";
-		byte[] namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 1111;
-		dir_entry.size = 222;
-		FileSystem.writeDirEntry(root_block, 0, dir_entry);
-
-		name = "file2";
-		namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 2222;
-		dir_entry.size = 333;
-		FileSystem.writeDirEntry(root_block, 1, dir_entry);
-
-		name = "file3";
-		namebytes = name.getBytes();
-		for (int i = 0; i < namebytes.length; i++)
-			dir_entry.filename[i] = namebytes[i];
-		dir_entry.attributes = 0x01;
-		dir_entry.first_block = 3333;
-		dir_entry.size = 444;
-		FileSystem.writeDirEntry(root_block, 2, dir_entry);
-    }
-
-    private static void findInRoot(String s){
-        DirEntry dir_entry;
-        boolean found = false;
-        for (int i = 0; i < dir_entries; i++) {
-            dir_entry = FileSystem.readDirEntry(root_block, i);
-            String cur = new String(dir_entry.filename).trim();
-			if(s.equals(cur)){
-                found = true;
-                System.out.println("Encontrou! " + cur);
-                break;
-            }
-        }
-        if(!found) System.err.println("Nao encontrou!");
-    }
 
     private static void ls(String s){
-        int block = parsePathString(s);
+        int block = getBlockFromPath(s, false);
+
+        if(block == -1){
+            System.err.println("Caminho informado não existe.");
+            return;
+        }
+
+        System.err.println("Listagem da pasta: ");
+        for (int i = 0; i < 32; i++) {
+            System.out.println(i+1 + "\t" + new String(FileSystem.readDirEntry(block, i).filename));
+        }
         
     }
 
-    private static int parsePathString(String s){
+    /**
+     * esse cond é uma gambiarra pq to com sono e amanha a gente ajeita isso
+     */
+    private static int getBlockFromPath(String s, boolean cond){
         String[] path = s.split("\\/+");
-        System.out.println(Arrays.toString(path));
+        
+
+        int size = path.length;
+        if(cond == true) size = path.length -1;
         int block = root_block;
-        int length = path.length;
-        int count = 0;
-        System.out.println(length);
-        DirEntry de = FileSystem.readDirEntry(block, 0);
-        for (int i = 1; i < path.length; i++) {
-            count = 0;
-            while(!(new String(de.filename).trim().equals(path[i])) || count < 25){
-                System.out.println(new String(de.filename).trim());
-                count++;
-                de = FileSystem.readDirEntry(block, count);
+        DirEntry entry;
+        entry = FileSystem.readDirEntry(block, 0);
+
+        for (int i = 1; i < size; i++) {
+            for (int j = 0; j < 32; j++) {
+                entry = FileSystem.readDirEntry(block, j);
+
+                if( new String(entry.filename).trim().equals(path[i])){
+                    block = entry.first_block;
+                    break;
+                }
+                if(j == 31) return -1;
             }
-            if(count == 25) {System.out.println("not found");return -1;}
-            block = de.first_block;
-            System.out.println(block); 
-            de = FileSystem.readDirEntry(block, count);
+        }
+
+        return block;
+    }
+
+
+    private static void mkdir(String path){
+        int blockPrev = getBlockFromPath(path, true);
+        int blockEmpty = getFirstEmptyBlock();
+        int entry = getEntry(blockPrev);
+
+        String[] file = path.split("\\/+");
+
+        System.out.println("Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " +  blockEmpty);
+        DirEntry dir_entry = new DirEntry();
+		String name = file[file.length-1];
+		byte[] namebytes = name.getBytes();
+		for (int i = 0; i < namebytes.length; i++)
+			dir_entry.filename[i] = namebytes[i];
+		dir_entry.attributes = 0x02;
+		dir_entry.first_block = (short)blockEmpty;
+		dir_entry.size = 222; // ???? nao sei oq é
+        FileSystem.writeDirEntry(blockPrev, entry, dir_entry);
+
+
+        fat[blockEmpty] = 0x22; // só pra ver se muda
+        FileSystem.writeFat("filesystem.dat", fat);
+
+    }
+
+    private static int getFirstEmptyBlock(){
+        int block = -1;
+        for (int i = 0; i < fat.length; i++) {
+            if(fat[i] == 0){
+                block = i;
+                break;
+            }
         }
         return block;
     }
+
+    private static int getEntry(int block){
+        int entry = -1;
+        for (int i = 0; i < 32; i++) {
+            String file = new String(FileSystem.readDirEntry(block, i).filename).trim();
+           if(file.equals("")){
+               entry = i;
+               return entry;
+           }
+        }
+        return entry;
+    }
+
 
 }
