@@ -134,8 +134,10 @@ class MyFS {
                 case "clear":
                     if (System.getProperty("os.name").contains("Windows"))
                         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-                    else
-                        Runtime.getRuntime().exec("clear");
+                    else{
+                        System.out.print("\033[H\033[2J");  
+                        System.out.flush();  
+                    }
                     break;
                 case "delfs":
                     delfs(args);
@@ -258,7 +260,7 @@ class MyFS {
             return;
         }
 
-        System.err.println("Index\tNome\t\tTipo\t\tTamanho");
+        System.err.println("Index\tName\t\tType\t\tSize");
         for (int i = 0; i < 32; i++) {
             DirEntry entry = FileSystem.readDirEntry(block, i);
             String nameFile = new String(entry.filename).trim();
@@ -267,7 +269,7 @@ class MyFS {
                 int size = entry.size;
                 String type;
                 type = (att == 1) ? "File" : "Dir";
-                System.out.println(i + "\t" + nameFile + "\t\t" + type + "\t" + size);
+                System.out.println(i + "\t" + nameFile + "\t\t" + type + "\t\t" + size);
             }
         }
 
