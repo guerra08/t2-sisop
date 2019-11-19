@@ -49,16 +49,10 @@ class MyFS {
      * @param s String com a operação do shell (init, mkdir /dir)
      */
     private static int parseAndExecute(String s) {
-        String aux = new String();
+
         if (s.isEmpty()) {
             System.out.println("Invalid operation.");
             return 1;
-        }
-
-        try{
-            aux = s.split("\"")[1];
-        } catch(Exception e){
-    
         }
 
         String[] split = s.split("\\s+");
@@ -69,18 +63,16 @@ class MyFS {
             return 1;
         }
 
-        if((op.equals("write") || op.equals("append")) && !aux.isEmpty()){
-            int pos1 = s.indexOf(34);
-            int posAux = pos1;
-            while(s.charAt(posAux+1) != 34 && posAux < s.length()){
-                posAux++;
+        try{
+            if(op.equals("write") || op.equals("append")){
+                String[] text = Arrays.copyOfRange(split, 2, split.length);
+                String toAdd = String.join(" ", text);
+                return doOperation(split, toAdd);
             }
-            int pos2 = posAux+2;
-            System.out.println(s.charAt(pos2));
-            if(pos2 < s.length() - 1){
-                System.out.println("oi");
-            }
+        } catch(Exception e){
+            System.out.println("Invalid operation.");
         }
+       
 
         return doOperation(split);
     }
@@ -92,6 +84,24 @@ class MyFS {
      */
     private static boolean opExists(String op) {
         return operations.contains(op);
+    }
+
+    private static int doOperation(String[] args, String toAdd){
+        try{
+            switch(args[0]){
+                case "write":
+                    write(args, toAdd);
+                    break;
+                case "append":
+                    //Append
+                    break;
+            }
+            return 0;
+        }
+        catch(Exception e){
+                System.out.println("Failed to execute command. Possible wrong or missing arguments.");
+                return 1;
+        }
     }
 
     /**
@@ -129,9 +139,6 @@ class MyFS {
                     break;
                 case "delfs":
                     delfs(args);
-                    break;
-                case "write":
-                    write(args);
                     break;
                 case "unlink":
                     unlink(args[1]);
@@ -339,8 +346,8 @@ class MyFS {
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
-    private static void write(String[] args){
-        
+    private static void write(String[] args, String toAdd){
+        System.out.println(toAdd);
     }
 
     private static DirEntry createEntry(String name, int type, int firstBlock){
