@@ -90,7 +90,7 @@ class MyFS {
         try{
             switch(args[0]){
                 case "write":
-                    write(args, toAdd);
+                    write(args[1], toAdd);
                     break;
                 case "append":
                     //Append
@@ -167,7 +167,6 @@ class MyFS {
      * @param args Argumentos / comandos digitados
      */
     private static void init(String[] args) {
-        System.out.println(args.length);
         if (args.length > 1) {
             System.out.println("Invalid arguments.");
             return;
@@ -348,10 +347,16 @@ class MyFS {
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
-    private static void write(String[] args, String toAdd){
-        System.out.println(toAdd);
+    private static void write(String path, String toAdd){
+        int blockArq = getBlockFromPath(path, false);
+        int blockDir = getBlockFromPath(path, true);
+        int entry = getEntry(blockDir);
+        int blockEmpty = FileSystem.readDirEntry(blockDir, entry).first_block;
+
+
     }
 
+    
     private static DirEntry createEntry(String name, int type, int firstBlock){
         DirEntry dir_entry = new DirEntry();
 
