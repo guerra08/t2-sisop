@@ -23,6 +23,9 @@ class MyFS {
     /* data block */
     final static byte[] data_block = new byte[block_size];
 
+    /* Estrutura do data_block utilizada nos métodos */
+    static byte [] d_block;
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
@@ -272,10 +275,6 @@ class MyFS {
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
-
-        for (int i = 0; i < block_size; i++) {
-            data_block[i] = 0;
-        }
         
         String local = file.length == 2 ? "root" : file[file.length-2];
         System.out.println("File " + file[file.length-1] + " created with succeess on directory " + local);
@@ -283,9 +282,11 @@ class MyFS {
         System.out.println(
                 "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
                 
-        DirEntry dir_entry = createEntry(file[file.length-1], 0x02, blockEmpty);        
+        DirEntry dir_entry = createEntry(file[file.length-1], 0x02, blockEmpty);
 
-        FileSystem.writeDirEntry(blockPrev, entry, dir_entry, data_block);
+        d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
+                
+        FileSystem.writeDirEntry(blockPrev, entry, dir_entry, d_block);
 
         fat[blockEmpty] = 0x7fff;
         FileSystem.writeFat("filesystem.dat", fat);
@@ -298,17 +299,16 @@ class MyFS {
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
 
-        for (int i = 0; i < block_size; i++) {
-            data_block[i] = 0;
-        }
-
         String local = file.length == 2 ? "root" : file[file.length-2];
 
         System.out.println("File " + file[file.length-1] + " created with succeess on directory " + local);
         System.out.println(
                 "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
-        DirEntry dir_entry = createEntry(file[file.length-1], 0x01, blockEmpty);        
-        FileSystem.writeDirEntry(blockPrev, entry, dir_entry, data_block);
+        DirEntry dir_entry = createEntry(file[file.length-1], 0x01, blockEmpty);  
+        
+        d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
+
+        FileSystem.writeDirEntry(blockPrev, entry, dir_entry, d_block);
 
         fat[blockEmpty] = 0x7fff;
         FileSystem.writeFat("filesystem.dat", fat);
@@ -332,8 +332,8 @@ class MyFS {
 
         System.out.println(Arrays.toString(file));
 
-        int blockPrev = getBlockFromPath(path, true); // bloco do pai
-        int blockToUnlik = getBlockFromPath(path, false); // bloco do "filho"
+        int blockPrev = getBlockFromPath(path, true); 
+        int blockToUnlik = getBlockFromPath(path, false); 
         System.out.println("Block prev: " + blockPrev + " Block Unlink: " + blockToUnlik);
         int entry = -1;
 
@@ -355,8 +355,10 @@ class MyFS {
             DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
             if(entryAux.attributes != 0x00) {System.err.println("Não é possível apagar diretório com conteúdo"); return;}
         }
+
         toUse = createEntry("", 0x00, 0);
-        FileSystem.writeDirEntry(blockPrev, entry, toUse, data_block);
+        d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
+        FileSystem.writeDirEntry(blockPrev, entry, toUse, d_block);
         fat[blockToUnlik] = 0x0000;
         FileSystem.writeFat("filesystem.dat", fat);        
         

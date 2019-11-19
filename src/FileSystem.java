@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -29,7 +30,6 @@ public class FileSystem {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 		return record;
 	}
 
