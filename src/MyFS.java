@@ -15,7 +15,7 @@ class MyFS {
     static int root_block = fat_blocks;
     static int dir_entry_size = 32;
     static int dir_entries = block_size / dir_entry_size;
-    static Set<String> operations = new HashSet<>(Arrays.asList("man","ls","mkdir","clear","exit","init","load","delfs","create","unlink"));
+    static Set<String> operations = new HashSet<>(Arrays.asList("man","ls","mkdir","clear","exit","init","load","delfs","create","unlink","write"));
     static String file = "filesystem.dat";
 
     /* FAT data structure */
@@ -49,9 +49,16 @@ class MyFS {
      * @param s String com a operação do shell (init, mkdir /dir)
      */
     private static int parseAndExecute(String s) {
+        String aux = new String();
         if (s.isEmpty()) {
             System.out.println("Invalid operation.");
             return 1;
+        }
+
+        try{
+            aux = s.split("\"")[1];
+        } catch(Exception e){
+    
         }
 
         String[] split = s.split("\\s+");
@@ -60,6 +67,19 @@ class MyFS {
         if (!opExists(op)) {
             System.out.println("Invalid operation.");
             return 1;
+        }
+
+        if((op.equals("write") || op.equals("append")) && !aux.isEmpty()){
+            int pos1 = s.indexOf(34);
+            int posAux = pos1;
+            while(s.charAt(posAux+1) != 34 && posAux < s.length()){
+                posAux++;
+            }
+            int pos2 = posAux+2;
+            System.out.println(s.charAt(pos2));
+            if(pos2 < s.length() - 1){
+                System.out.println("oi");
+            }
         }
 
         return doOperation(split);
@@ -109,6 +129,9 @@ class MyFS {
                     break;
                 case "delfs":
                     delfs(args);
+                    break;
+                case "write":
+                    write(args);
                     break;
                 case "unlink":
                     unlink(args[1]);
@@ -314,6 +337,10 @@ class MyFS {
 
         fat[blockEmpty] = 0x7fff;
         FileSystem.writeFat("filesystem.dat", fat);
+    }
+
+    private static void write(String[] args){
+        
     }
 
     private static DirEntry createEntry(String name, int type, int firstBlock){
