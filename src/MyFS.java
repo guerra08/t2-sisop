@@ -102,8 +102,10 @@ class MyFS {
                     System.out.println(man);
                     break;
                 case "clear":
-                    System.out.print("\033[H\033[2J");
-                    System.out.flush();
+                    if (System.getProperty("os.name").contains("Windows"))
+                        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+                    else
+                        Runtime.getRuntime().exec("clear");
                     break;
                 case "delfs":
                     delfs(args);
@@ -353,7 +355,7 @@ class MyFS {
         System.out.println("Entry " + entry);
         for (int i = 0; i < 32; i++) {
             DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
-            if(entryAux.attributes != 0x00) {System.err.println("Não é possível apagar diretório com conteúdo"); return;}
+            if(entryAux.attributes != 0x00) {System.err.println("Can't delete directory with entries."); return;}
         }
 
         toUse = createEntry("", 0x00, 0);
