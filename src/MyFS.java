@@ -311,6 +311,10 @@ class MyFS {
         DirEntry entry;
         entry = FileSystem.readDirEntry(block, 0);
 
+        if(pathSplited.length != 0 && !pathSplited[0].equals("root")){
+            return -1;
+        }
+
         for (int i = 1; i < size; i++) {
             for (int j = 0; j < 32; j++) {
                 entry = FileSystem.readDirEntry(block, j);
