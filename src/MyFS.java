@@ -120,6 +120,7 @@ class MyFS {
             switch (args[0]) {
             case "init":
                 init(args);
+                load(args);
                 break;
             case "load":
                 load(args);
