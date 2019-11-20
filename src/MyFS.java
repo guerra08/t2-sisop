@@ -522,6 +522,30 @@ class MyFS {
 
     private static void read(String path){
         int blockArq = getBlockFromPath(path, false);
+        int blockPrev = getBlockFromPath(path, true);
+
+        String[] pathSplited = path.split("\\/+");
+
+        if(pathSplited.length == 0){
+            System.err.println("Trying to use read on non file.");
+            return;
+        }
+
+        int j = 0;
+
+        while(j<32){
+            DirEntry de = FileSystem.readDirEntry(blockPrev, j);
+            if(pathSplited.length != 0 &&  new String(de.filename).trim().equals(pathSplited[pathSplited.length-1])){ //Found
+                if(de.attributes != 0x01){
+                    System.err.println("Trying to use read on non file.");
+                    return;
+                }
+                else{
+                    break;
+                }
+            }
+            j++;
+        }
 
         String mensagem;
 
