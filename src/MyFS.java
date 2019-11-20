@@ -1,10 +1,8 @@
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.Queue;
 
 class MyFS {
 
@@ -366,10 +364,9 @@ class MyFS {
         int k = 0;
         for(int i = 0; i < fileBytes.length; i++){
             block[k++] = fileBytes[i];
-            
-            if(k == 1024 || k == fileBytes.length){
+            System.out.println(k);
+            if(k == 1024){
                 FileSystem.writeBlock("filesystem.dat", blockArq, block);
-                
                 if(numBlocks > 1){
                     int aux = blockArq;
                     fat[blockArq] = 0x7fff;
@@ -381,11 +378,23 @@ class MyFS {
                 }
                 else{
                     fat[blockArq] = 0x7fff;
+                    FileSystem.writeFat("filesystem.dat", fat);
                 }
                 k = 0;
                 for (int j = 0; j < 1024; j++) {
-                    block[i] = 0;
+                    block[j] = 0;
                 }
+            }
+
+            if(k < 1024 && i == fileBytes.length-1){
+                System.out.println(k);
+                for(int c = k+1; c < 1024; c++){
+                    block[c] = 0;
+                }
+                    fat[blockArq] = 0x7fff;
+                    FileSystem.writeBlock("filesystem.dat", blockArq, block);
+                    FileSystem.writeFat("filesystem.dat", fat);
+
             }
         }
 
@@ -444,7 +453,7 @@ class MyFS {
         System.out.println("Entry " + entry);
         for (int i = 0; i < 32; i++) {
             DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
-            if (entryAux.attributes != 0x00) {
+            if (entryAux.attributes == 0x02) {
                 System.err.println("Can't delete directory with entries.");
                 return;
             }
@@ -453,21 +462,42 @@ class MyFS {
         toUse = createEntry("", 0x00, 0);
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
         FileSystem.writeDirEntry(blockPrev, entry, toUse, d_block);
-        fat[blockToUnlik] = 0x0000;
+
+        int b = blockToUnlik;
+        if(fat[b] == 0x7fff){
+            fat[b] = 0x0000;
+        }
+        else{
+            while(fat[blockToUnlik] != 0x7fff){
+                b = fat[b];
+                fat[b] = 0x0000;
+            }
+        }
         FileSystem.writeFat("filesystem.dat", fat);
 
     }
 
     private static void read(String path){
         int blockArq = getBlockFromPath(path, false);
+        
+
+
+        String mensagem;
+
+        byte[] record;
+        record = FileSystem.readBlock("filesystem.dat", blockArq);
+
+        mensagem = new String(record);
 
         short pos = fat[blockArq];
-        byte[] record;
         while(pos != 0x7fff){
-            record = FileSystem.readBlock("filesystem.dat", blockArq);
-            blockArq = pos;
-            System.out.println(Arrays.toString(record));
+            record = FileSystem.readBlock("filesystem.dat", pos);
+            pos = fat[pos]; 
+
+            mensagem = mensagem + new String(record);
         }
+
+        System.out.println(mensagem);
     }
 
     private static int getFirstEmptyBlock() {
