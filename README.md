@@ -33,7 +33,9 @@ tp2.pdf       --> Enunciado do trabalho em formato PDF.
 
 - Caso queria verificar os conteúdos de um diretório, utilize o comando <b>ls</b>. Exemplo: ls / ou ls /meu_dir
 
-- Quando for escrever dados em um arquivo, utilize o comando <b>write</b>. A sua sintaxe segue o padrão: <b>write /caminho/arquivo "dados a serem escritos".</b>
+- Quando for escrever (com sobrescrita) dados em um arquivo, utilize o comando <b>write</b>. A sua sintaxe segue o padrão: <b>write /caminho/arquivo "dados a serem escritos".</b>
+
+- Para escrever sem sobrescrita, utilize o comand <b>apend</b>. Exemplo: apend /file "texto"
 
 - Para ler os conteúdos de um arquivo, digite o comando <b>read</b>. Como argumento, passa-se o caminho do arquivo. Exemplo: read /arquvo.
 
