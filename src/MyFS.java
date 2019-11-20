@@ -1,8 +1,10 @@
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Queue;
 
 class MyFS {
 
@@ -15,7 +17,8 @@ class MyFS {
     static int root_block = fat_blocks;
     static int dir_entry_size = 32;
     static int dir_entries = block_size / dir_entry_size;
-    static Set<String> operations = new HashSet<>(Arrays.asList("man","ls","mkdir","clear","exit","init","load","delfs","create","unlink","write"));
+    static Set<String> operations = new HashSet<>(
+            Arrays.asList("man", "ls", "mkdir", "clear", "exit", "init", "load", "delfs", "create", "unlink", "write", "read"));
     static String file = "filesystem.dat";
 
     /* FAT data structure */
@@ -24,7 +27,7 @@ class MyFS {
     final static byte[] data_block = new byte[block_size];
 
     /* Estrutura do data_block utilizada nos métodos */
-    static byte [] d_block;
+    static byte[] d_block;
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
@@ -36,7 +39,7 @@ class MyFS {
         while (true) {
             String op = sc.nextLine();
             int s = parseAndExecute(op);
-            if(s == 2){
+            if (s == 2) {
                 sc.close();
                 System.out.println("Falooooou!");
                 System.exit(0);
@@ -45,7 +48,9 @@ class MyFS {
     }
 
     /**
-     * Recebe uma String, realiza o seu parse e caso seja válida, verifica qual comando executar.
+     * Recebe uma String, realiza o seu parse e caso seja válida, verifica qual
+     * comando executar.
+     * 
      * @param s String com a operação do shell (init, mkdir /dir)
      */
     private static int parseAndExecute(String s) {
@@ -63,22 +68,23 @@ class MyFS {
             return 1;
         }
 
-        try{
-            if(op.equals("write") || op.equals("append")){
+        try {
+            if (op.equals("write") || op.equals("append")) {
                 String[] text = Arrays.copyOfRange(split, 2, split.length);
                 String toAdd = String.join(" ", text);
+                toAdd = toAdd.replace("\"", "");
                 return doOperation(split, toAdd);
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Invalid operation.");
         }
-       
 
         return doOperation(split);
     }
 
     /**
      * Verifica se a operação existe
+     * 
      * @param op
      * @return boolean
      */
@@ -86,21 +92,22 @@ class MyFS {
         return operations.contains(op);
     }
 
-    private static int doOperation(String[] args, String toAdd){
-        try{
-            switch(args[0]){
-                case "write":
-                    write(args[1], toAdd);
-                    break;
-                case "append":
-                    //Append
-                    break;
+    private static int doOperation(String[] args, String toAdd) {
+        System.out.println(toAdd);
+        try {
+            switch (args[0]) {
+            case "write":
+                write(args[1], toAdd);
+                break;
+            case "append":
+                // Append
+                break;
             }
             return 0;
-        }
-        catch(Exception e){
-                System.out.println("Failed to execute command. Possible wrong or missing arguments.");
-                return 1;
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("Failed to execute command. Possible wrong or missing arguments.");
+            return 1;
         }
     }
 
@@ -111,59 +118,60 @@ class MyFS {
      */
     private static int doOperation(String[] args) {
 
-        try{
+        try {
             switch (args[0]) {
-                case "init":
-                    init(args);
-                    break;
-                case "load":
-                    load(args);
-                    break;
-                case "ls":
-                    ls(args[1]);
-                    break;
-                case "mkdir":
-                    mkdir(args[1]);
-                    break;
-                case "create":
-                    create(args[1]);
-                    break;
-                case "man":
-                    System.out.println(man);
-                    break;
-                case "clear":
-                    if (System.getProperty("os.name").contains("Windows"))
-                        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-                    else{
-                        System.out.print("\033[H\033[2J");  
-                        System.out.flush();  
-                    }
-                    break;
-                case "delfs":
-                    delfs(args);
-                    break;
-                case "unlink":
-                    unlink(args[1]);
-                    break;
-                case "exit":
-                    return 2;
-                default:
-                    System.out.println("command not found");
-                    break;
+            case "init":
+                init(args);
+                break;
+            case "load":
+                load(args);
+                break;
+            case "ls":
+                ls(args[1]);
+                break;
+            case "mkdir":
+                mkdir(args[1]);
+                break;
+            case "create":
+                create(args[1]);
+                break;
+            case "man":
+                System.out.println(man);
+                break;
+            case "clear":
+                if (System.getProperty("os.name").contains("Windows"))
+                    new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+                else {
+                    System.out.print("\033[H\033[2J");
+                    System.out.flush();
+                }
+                break;
+            case "delfs":
+                delfs(args);
+                break;
+            case "unlink":
+                unlink(args[1]);
+                break;
+            case "read":
+                read(args[1]);
+                break;
+            case "exit":
+                return 2;
+            default:
+                System.out.println("command not found");
+                break;
             }
             return 0;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Failed to execute command. Possible wrong or missing arguments.");
             return 1;
         }
-        
 
     }
 
-    
     /**
      * Inicializa o sistema de arquivos (filesystem.dat)
+     * 
      * @param args Argumentos / comandos digitados
      */
     private static void init(String[] args) {
@@ -308,17 +316,17 @@ class MyFS {
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
-        
-        String local = file.length == 2 ? "root" : file[file.length-2];
-        System.out.println("File " + file[file.length-1] + " created with succeess on directory " + local);
+
+        String local = file.length == 2 ? "root" : file[file.length - 2];
+        System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
 
         System.out.println(
                 "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
-                
-        DirEntry dir_entry = createEntry(file[file.length-1], 0x02, blockEmpty);
+
+        DirEntry dir_entry = createEntry(file[file.length - 1], 0x02, blockEmpty);
 
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
-                
+
         FileSystem.writeDirEntry(blockPrev, entry, dir_entry, d_block);
 
         fat[blockEmpty] = 0x7fff;
@@ -327,18 +335,19 @@ class MyFS {
     }
 
     private static void create(String path) {
+        
         int blockPrev = getBlockFromPath(path, true);
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
 
-        String local = file.length == 2 ? "root" : file[file.length-2];
+        String local = file.length == 2 ? "root" : file[file.length - 2];
 
-        System.out.println("File " + file[file.length-1] + " created with succeess on directory " + local);
+        System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
         System.out.println(
                 "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
-        DirEntry dir_entry = createEntry(file[file.length-1], 0x01, blockEmpty);  
-        
+        DirEntry dir_entry = createEntry(file[file.length - 1], 0x01, blockEmpty);
+
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
 
         FileSystem.writeDirEntry(blockPrev, entry, dir_entry, d_block);
@@ -347,36 +356,75 @@ class MyFS {
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
-    private static void write(String path, String toAdd){
+    private static void write(String path, String toAdd) {
         int blockArq = getBlockFromPath(path, false);
-        int blockDir = getBlockFromPath(path, true);
-        int entry = getEntry(blockDir);
-        int blockEmpty = FileSystem.readDirEntry(blockDir, entry).first_block;
-
+        cleanFatAndBlocks(blockArq);
+        int numBlocks = (int) Math.ceil(toAdd.length() / 1024);
+        byte[] fileBytes = toAdd.getBytes();
+        byte[] block = new byte[1024];
+        
+        int k = 0;
+        for(int i = 0; i < fileBytes.length; i++){
+            block[k++] = fileBytes[i];
+            
+            if(k == 1024 || k == fileBytes.length){
+                FileSystem.writeBlock("filesystem.dat", blockArq, block);
+                
+                if(numBlocks > 1){
+                    int aux = blockArq;
+                    fat[blockArq] = 0x7fff;
+                    FileSystem.writeFat("filesystem.dat", fat);
+                    
+                    blockArq = getFirstEmptyBlock();    
+                    fat[aux] = (short)blockArq;
+                    fat[blockArq] = 0x7fff;
+                }
+                else{
+                    fat[blockArq] = 0x7fff;
+                }
+                k = 0;
+                for (int j = 0; j < 1024; j++) {
+                    block[i] = 0;
+                }
+            }
+        }
 
     }
 
-    
-    private static DirEntry createEntry(String name, int type, int firstBlock){
+    private static void cleanFatAndBlocks(int block){
+        
+        byte[] blockByte = new byte[1024];
+        short pos = fat[block];
+        fat[block] = 0;
+        while(pos != 0x7fff){
+            short aux = fat[pos];
+            fat[pos] = 0;
+            FileSystem.writeBlock("filesystem.dat", pos, blockByte);
+            pos = aux;
+        }
+        FileSystem.writeFat("filesystem.dat", fat);
+    }
+
+    private static DirEntry createEntry(String name, int type, int firstBlock) {
         DirEntry dir_entry = new DirEntry();
 
         byte[] namebytes = name.getBytes();
         for (int i = 0; i < namebytes.length; i++)
             dir_entry.filename[i] = namebytes[i];
-        dir_entry.attributes = (byte)type;
+        dir_entry.attributes = (byte) type;
         dir_entry.first_block = (short) firstBlock;
         dir_entry.size = 0;
 
         return dir_entry;
     }
 
-    private static void unlink(String path){        
+    private static void unlink(String path) {
         String[] file = path.split("\\/+");
 
         System.out.println(Arrays.toString(file));
 
-        int blockPrev = getBlockFromPath(path, true); 
-        int blockToUnlik = getBlockFromPath(path, false); 
+        int blockPrev = getBlockFromPath(path, true);
+        int blockToUnlik = getBlockFromPath(path, false);
         System.out.println("Block prev: " + blockPrev + " Block Unlink: " + blockToUnlik);
         int entry = -1;
 
@@ -387,7 +435,7 @@ class MyFS {
             dir = FileSystem.readDirEntry(blockPrev, i);
             String fileName = new String(dir.filename).trim();
 
-            if(fileName.equals(file[file.length-1])){
+            if (fileName.equals(file[file.length - 1])) {
                 entry = i;
                 break;
             }
@@ -396,15 +444,30 @@ class MyFS {
         System.out.println("Entry " + entry);
         for (int i = 0; i < 32; i++) {
             DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
-            if(entryAux.attributes != 0x00) {System.err.println("Can't delete directory with entries."); return;}
+            if (entryAux.attributes != 0x00) {
+                System.err.println("Can't delete directory with entries.");
+                return;
+            }
         }
 
         toUse = createEntry("", 0x00, 0);
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
         FileSystem.writeDirEntry(blockPrev, entry, toUse, d_block);
         fat[blockToUnlik] = 0x0000;
-        FileSystem.writeFat("filesystem.dat", fat);        
-        
+        FileSystem.writeFat("filesystem.dat", fat);
+
+    }
+
+    private static void read(String path){
+        int blockArq = getBlockFromPath(path, false);
+
+        short pos = fat[blockArq];
+        byte[] record;
+        while(pos != 0x7fff){
+            record = FileSystem.readBlock("filesystem.dat", blockArq);
+            blockArq = pos;
+            System.out.println(Arrays.toString(record));
+        }
     }
 
     private static int getFirstEmptyBlock() {
