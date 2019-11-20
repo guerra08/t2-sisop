@@ -54,7 +54,7 @@ class MyFS {
     private static int parseAndExecute(String s) {
 
         if (s.isEmpty()) {
-            System.out.println("Invalid operation.");
+            System.err.println("Invalid operation.");
             return 1;
         }
 
@@ -62,7 +62,7 @@ class MyFS {
         String op = split[0];
 
         if (!opExists(op)) {
-            System.out.println("Invalid operation.");
+            System.err.println("Invalid operation.");
             return 1;
         }
 
@@ -74,7 +74,7 @@ class MyFS {
                 return doOperation(split, toAdd);
             }
         } catch (Exception e) {
-            System.out.println("Invalid operation.");
+            System.err.println("Invalid operation.");
         }
 
         return doOperation(split);
@@ -103,8 +103,7 @@ class MyFS {
             }
             return 0;
         } catch (Exception e) {
-            System.out.println(e);
-            System.out.println("Failed to execute command. Possible wrong or missing arguments.");
+            System.err.println("Failed to execute command. Possible wrong or missing arguments.");
             return 1;
         }
     }
@@ -185,12 +184,12 @@ class MyFS {
 
     private static void delfs(String[] args) {
         if (args.length > 1) {
-            System.out.println("Invalid arguments!");
+            System.err.println("Invalid arguments!");
             return;
         }
         System.out.println("Removing filesystem...");
         if (!deleteFs())
-            System.out.println("Error removing filesystem.");
+            System.err.println("Error removing filesystem.");
         else
             System.out.println("Done.");
     }
@@ -203,7 +202,7 @@ class MyFS {
 
     private static void load(String[] args) {
         if (args.length > 1) {
-            System.out.println("Invalid arguments.");
+            System.err.println("Invalid arguments.");
             return;
         }
         System.out.println("Loading filesystem...");
@@ -316,15 +315,12 @@ class MyFS {
         String[] file = path.split("\\/+");
 
         if(file[file.length - 1].length() > 25){
-            System.out.println("Name is larger than 25 characters.");
+            System.err.println("Name is larger than 25 characters.");
             return;
         }
 
         String local = file.length == 2 ? "root" : file[file.length - 2];
         System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
-
-        System.out.println(
-                "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
 
         DirEntry dir_entry = createEntry(file[file.length - 1], 0x02, blockEmpty);
 
@@ -345,15 +341,13 @@ class MyFS {
         String[] file = path.split("\\/+");
 
         if(file[file.length - 1].length() > 25){
-            System.out.println("Name is larger than 25 characters.");
+            System.err.println("Name is larger than 25 characters.");
             return;
         }
 
         String local = file.length == 2 ? "root" : file[file.length - 2];
 
         System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
-        System.out.println(
-                "Path: " + path + " entry: " + entry + " blockPrev: " + blockPrev + " blockEmpty: " + blockEmpty);
         DirEntry dir_entry = createEntry(file[file.length - 1], 0x01, blockEmpty);
 
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
@@ -366,12 +360,6 @@ class MyFS {
 
     private static void append(String path, String toAdd){
         write(path, toAdd, false);
-
-        // Ler a fat até achar o 7fff
-        // Ao achar, ler o bloco e armazenar isso no block
-        // Começar a iteração na primeira posição vazia do block tipo a 200
-        // Escrever até a 1024 e salvar.
-        // If passar, encadeia 
     }
 
     private static void write(String path, String toAdd, boolean overwrite) {
@@ -387,11 +375,9 @@ class MyFS {
             block = FileSystem.readBlock("filesystem.dat", blockArq);
             int pos;
             if(fat[blockArq] == 0x7fff){
-                System.out.println("if");
                 block = FileSystem.readBlock("filesystem.dat", blockArq);
             }
             else{
-                System.out.println("else");
                 pos = fat[blockArq];
                 while(pos != 0x7fff){
                     block = FileSystem.readBlock("filesystem.dat", pos);
@@ -399,7 +385,6 @@ class MyFS {
                     blockArq = fat[pos]; 
                 }
             }
-            System.out.println("here");
             for (int i = 0; i < block.length; i++) {
                 if(block[i] == 0) {
                     k = i; 
@@ -476,11 +461,8 @@ class MyFS {
     private static void unlink(String path) {
         String[] file = path.split("\\/+");
 
-        System.out.println(Arrays.toString(file));
-
         int blockPrev = getBlockFromPath(path, true);
         int blockToUnlik = getBlockFromPath(path, false);
-        System.out.println("Block prev: " + blockPrev + " Block Unlink: " + blockToUnlik);
         int entry = -1;
 
         DirEntry dir = new DirEntry();
@@ -496,10 +478,8 @@ class MyFS {
             }
         }
 
-        System.out.println("Entry " + entry);
-
         if(entry == -1){
-            System.out.println("Entry not found.");
+            System.err.println("Entry not found.");
             return;
         }
 
@@ -540,7 +520,6 @@ class MyFS {
             mensagem = mensagem + new String(record);
         }
 
-        System.out.println(mensagem);
     }
 
     private static int getFirstEmptyBlock() {
