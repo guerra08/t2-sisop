@@ -23,9 +23,9 @@ tp2.pdf       --> Enunciado do trabalho em formato PDF.
 
 - Caso seja a primeira vez executando o programa, será necessário criar o filesystem. Para isso, digite o comando <b>init</b>
 
-- Se tiver alguma dúvida sobre os comandos, digite man. Isso irá abrir o manual do shell.
-
 - Após iniciar o sistema de arquivos, é necessário carregá-lo para a memória principal. Para isso, digite o comando <b>load.</b>
+
+- Para deletar o sistema de arquivos (partição virtual), basta digitar <b>delfs</b>.
 
 - Se você quiser criar um diretório, basta executar o comando <b>mkdir</b>. Por exemplo, para criar um diretório na raíz, digite /nome_dir ou /root/nome_dir.
 
