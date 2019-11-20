@@ -339,7 +339,7 @@ class MyFS {
         }
 
         String local = file.length == 2 ? "root" : file[file.length - 2];
-        System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
+        System.out.println("Directory " + file[file.length - 1] + " created with succeess on directory " + local);
 
         DirEntry dir_entry = createEntry(file[file.length - 1], 0x02, blockEmpty);
 
@@ -502,11 +502,11 @@ class MyFS {
             return;
         }
 
+
         DirEntry check = FileSystem.readDirEntry(blockPrev, entry);
         if(check.attributes == 0x02){ // É um diretório
             for (int i = 0; i < 32; i++) {
                 DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
-                System.out.println(entryAux.toString());
                 if(entryAux.attributes != 0x00){
                     System.err.println("Can't delete directory with entries.");
                     return;
@@ -514,11 +514,12 @@ class MyFS {
             }
         }
 
+        System.out.println("Successfully removed");
+
         cleanFatAndBlocks(blockToUnlik);
         toUse = createEntry("", 0x00, 0);
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
         FileSystem.writeDirEntry(blockPrev, entry, toUse, d_block);
-
     }
 
     private static void read(String path){
