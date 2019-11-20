@@ -36,3 +36,5 @@ tp2.pdf       --> Enunciado do trabalho em formato PDF.
 - Quando for escrever dados em um arquivo, utilize o comando <b>write</b>. A sua sintaxe segue o padrão: <b>write /caminho/arquivo "dados a serem escritos".</b>
 
 - Para ler os conteúdos de um arquivo, digite o comando <b>read</b>. Como argumento, passa-se o caminho do arquivo. Exemplo: read /arquvo.
+
+- Caso deseje remover um diretório, utiliza-se o comando <b>unlink</b>. Não é possível remover diretórios que possuem entradas, apenas diretórios vazios. Exemplo: unlink /dir ou unlink /file
