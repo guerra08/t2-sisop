@@ -590,6 +590,8 @@ class MyFS {
             mensagem = mensagem + new String(record);
         }
 
+        System.out.println(mensagem);
+
     }
 
     private static int getFirstEmptyBlock() {
