@@ -311,10 +311,6 @@ class MyFS {
         DirEntry entry;
         entry = FileSystem.readDirEntry(block, 0);
 
-        if(pathSplited.length != 0 && !pathSplited[0].equals("root")){
-            return -1;
-        }
-
         for (int i = 1; i < size; i++) {
             for (int j = 0; j < 32; j++) {
                 entry = FileSystem.readDirEntry(block, j);
@@ -336,6 +332,11 @@ class MyFS {
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
+
+        if(blockPrev == -1){
+            System.err.println("Error on mkdir");
+            return;
+        }
 
         if(file[file.length - 1].length() > 25){
             System.err.println("Name is larger than 25 characters.");
@@ -361,6 +362,8 @@ class MyFS {
         DirEntry dir_entry = createEntry(file[file.length - 1], 0x02, blockEmpty);
 
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
+
+        System.out.println(entry);
 
         FileSystem.writeDirEntry(blockPrev, entry, dir_entry, d_block);
 
