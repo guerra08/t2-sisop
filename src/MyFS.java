@@ -315,6 +315,11 @@ class MyFS {
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
 
+        if(file[file.length - 1].length() > 25){
+            System.out.println("Name is larger than 25 characters.");
+            return;
+        }
+
         String local = file.length == 2 ? "root" : file[file.length - 2];
         System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
 
@@ -338,6 +343,11 @@ class MyFS {
         int blockEmpty = getFirstEmptyBlock();
         int entry = getEntry(blockPrev);
         String[] file = path.split("\\/+");
+
+        if(file[file.length - 1].length() > 25){
+            System.out.println("Name is larger than 25 characters.");
+            return;
+        }
 
         String local = file.length == 2 ? "root" : file[file.length - 2];
 
@@ -419,7 +429,6 @@ class MyFS {
 
     private static DirEntry createEntry(String name, int type, int firstBlock) {
         DirEntry dir_entry = new DirEntry();
-
         byte[] namebytes = name.getBytes();
         for (int i = 0; i < namebytes.length; i++)
             dir_entry.filename[i] = namebytes[i];
