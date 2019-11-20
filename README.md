@@ -23,7 +23,7 @@ tp2.pdf       --> Enunciado do trabalho em formato PDF.
 
 - Caso seja a primeira vez executando o programa, será necessário criar o filesystem. Para isso, digite o comando <b>init</b>
 
-- Após iniciar o sistema de arquivos, é necessário carregá-lo para a memória principal. Para isso, digite o comando <b>load.</b>
+- Após rodar o comando init, o sistema de arquivos é automaticamente carregado para a memória. Porém, caso queira carregar o filesystem existente, é necessário usar o comando <b>load.</b>
 
 - Para deletar o sistema de arquivos (partição virtual), basta digitar <b>delfs</b>.
 
