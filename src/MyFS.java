@@ -404,13 +404,16 @@ class MyFS {
         
         byte[] blockByte = new byte[1024];
         short pos = fat[block];
-        fat[block] = 0;
+        fat[block] = 0x0000;
+        FileSystem.writeBlock("filesystem.dat", block, blockByte);
+
         while(pos != 0x7fff){
             short aux = fat[pos];
-            fat[pos] = 0;
+            fat[pos] = 0x0000;
             FileSystem.writeBlock("filesystem.dat", pos, blockByte);
             pos = aux;
         }
+
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
@@ -451,36 +454,33 @@ class MyFS {
         }
 
         System.out.println("Entry " + entry);
-        for (int i = 0; i < 32; i++) {
-            DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
-            if (entryAux.attributes == 0x02) {
-                System.err.println("Can't delete directory with entries.");
-                return;
+
+        if(entry == -1){
+            System.out.println("Entry not found.");
+            return;
+        }
+
+        DirEntry check = FileSystem.readDirEntry(blockPrev, entry);
+        if(check.attributes == 0x02){ // É um diretório
+            for (int i = 0; i < 32; i++) {
+                DirEntry entryAux = FileSystem.readDirEntry(blockToUnlik, i);
+                System.out.println(entryAux.toString());
+                if(entryAux.attributes != 0x00){
+                    System.err.println("Can't delete directory with entries.");
+                    return;
+                }
             }
         }
 
+        cleanFatAndBlocks(blockToUnlik);
         toUse = createEntry("", 0x00, 0);
         d_block = FileSystem.readBlock("filesystem.dat", blockPrev);
         FileSystem.writeDirEntry(blockPrev, entry, toUse, d_block);
-
-        int b = blockToUnlik;
-        if(fat[b] == 0x7fff){
-            fat[b] = 0x0000;
-        }
-        else{
-            while(fat[blockToUnlik] != 0x7fff){
-                b = fat[b];
-                fat[b] = 0x0000;
-            }
-        }
-        FileSystem.writeFat("filesystem.dat", fat);
 
     }
 
     private static void read(String path){
         int blockArq = getBlockFromPath(path, false);
-        
-
 
         String mensagem;
 
