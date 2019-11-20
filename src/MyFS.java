@@ -338,6 +338,27 @@ class MyFS {
             return;
         }
 
+        String[] pathSplited = path.split("\\/+");
+
+        int j = 0;
+
+        while(j<32){
+            DirEntry de = FileSystem.readDirEntry(blockPrev, j);
+            if(pathSplited.length != 0 &&  new String(de.filename).trim().equals(pathSplited[pathSplited.length-1])){ //Found
+                if(de.attributes != 0x02){
+                    System.err.println("Trying to mkdir in non directory.");
+                    return;
+                }
+                else{
+                    if(new String(de.filename).trim().equals(pathSplited[pathSplited.length-1])){
+                        System.err.println("Dir with the same name already exists.");
+                        return;
+                    }
+                }
+            }
+            j++;
+        }
+
         String local = file.length == 2 ? "root" : file[file.length - 2];
         System.out.println("File " + file[file.length - 1] + " created with succeess on directory " + local);
 
