@@ -16,7 +16,7 @@ class MyFS {
     static int dir_entry_size = 32;
     static int dir_entries = block_size / dir_entry_size;
     static Set<String> operations = new HashSet<>(
-            Arrays.asList("man", "ls", "mkdir", "clear", "exit", "init", "load", "delfs", "create", "unlink", "write", "read"));
+            Arrays.asList("man", "ls", "mkdir", "clear", "exit", "init", "load", "delfs", "create", "unlink", "write", "read","append"));
     static String file = "filesystem.dat";
 
     /* FAT data structure */
@@ -95,10 +95,10 @@ class MyFS {
         try {
             switch (args[0]) {
             case "write":
-                write(args[1], toAdd);
+                write(args[1], toAdd, true);
                 break;
             case "append":
-                // Append
+                append(args[1], toAdd);
                 break;
             }
             return 0;
@@ -364,17 +364,52 @@ class MyFS {
         FileSystem.writeFat("filesystem.dat", fat);
     }
 
-    private static void write(String path, String toAdd) {
+    private static void append(String path, String toAdd){
+        write(path, toAdd, false);
+
+        // Ler a fat até achar o 7fff
+        // Ao achar, ler o bloco e armazenar isso no block
+        // Começar a iteração na primeira posição vazia do block tipo a 200
+        // Escrever até a 1024 e salvar.
+        // If passar, encadeia 
+    }
+
+    private static void write(String path, String toAdd, boolean overwrite) {
         int blockArq = getBlockFromPath(path, false);
-        cleanFatAndBlocks(blockArq);
+        if(overwrite){
+            cleanFatAndBlocks(blockArq);
+        }
         int numBlocks = (int) Math.ceil(toAdd.length() / 1024);
         byte[] fileBytes = toAdd.getBytes();
         byte[] block = new byte[1024];
-        
         int k = 0;
+        if(!overwrite){
+            block = FileSystem.readBlock("filesystem.dat", blockArq);
+            int pos;
+            if(fat[blockArq] == 0x7fff){
+                System.out.println("if");
+                block = FileSystem.readBlock("filesystem.dat", blockArq);
+            }
+            else{
+                System.out.println("else");
+                pos = fat[blockArq];
+                while(pos != 0x7fff){
+                    block = FileSystem.readBlock("filesystem.dat", pos);
+                    pos = fat[pos];
+                    blockArq = fat[pos]; 
+                }
+            }
+            System.out.println("here");
+            for (int i = 0; i < block.length; i++) {
+                if(block[i] == 0) {
+                    k = i; 
+                    break;
+                }
+            }
+        }
+
         for(int i = 0; i < fileBytes.length; i++){
             block[k++] = fileBytes[i];
-            System.out.println(k);
             if(k == 1024){
                 FileSystem.writeBlock("filesystem.dat", blockArq, block);
                 if(numBlocks > 1){
@@ -397,7 +432,6 @@ class MyFS {
             }
 
             if(k < 1024 && i == fileBytes.length-1){
-                System.out.println(k);
                 for(int c = k+1; c < 1024; c++){
                     block[c] = 0;
                 }
