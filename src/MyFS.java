@@ -103,6 +103,7 @@ class MyFS {
             }
             return 0;
         } catch (Exception e) {
+            System.out.println(e);
             System.err.println("Failed to execute command. Possible wrong or missing arguments.");
             return 1;
         }
@@ -155,12 +156,12 @@ class MyFS {
             case "exit":
                 return 2;
             default:
-                System.out.println("command not found");
+                System.err.println("command not found");
                 break;
             }
             return 0;
         } catch (Exception e) {
-            System.out.println("Failed to execute command. Possible wrong or missing arguments.");
+            System.err.println("Failed to execute command. Possible wrong or missing arguments.");
             return 1;
         }
 
@@ -258,11 +259,31 @@ class MyFS {
 
     private static void ls(String s) {
         int block = getBlockFromPath(s, false);
+        int blockPrev = getBlockFromPath(s, true);
 
         if (block == -1) {
             System.err.println("Path does not exist.");
             return;
         }
+
+        String[] pathSplited = s.split("\\/+");
+
+        int j = 0;
+
+        while(j<32){
+            DirEntry de = FileSystem.readDirEntry(blockPrev, j);
+            if(pathSplited.length != 0 &&  new String(de.filename).trim().equals(pathSplited[pathSplited.length-1])){ //Found
+                if(de.attributes != 0x02){
+                    System.err.println("Trying to use ls on non directory.");
+                    return;
+                }
+                else{
+                    break;
+                }
+            }
+            j++;
+        }
+        
 
         System.err.println("Index\tName\t\tType\t\tSize");
         for (int i = 0; i < 32; i++) {
@@ -279,9 +300,6 @@ class MyFS {
 
     }
 
-    /**
-     * esse cond é uma gambiarra pq to com sono e amanha a gente ajeita isso
-     */
     private static int getBlockFromPath(String path, boolean cond) {
         String[] pathSplited = path.split("\\/+");
 
